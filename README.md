@@ -4,7 +4,7 @@ A comprehensive fact-checking system for multilingual news claims using **LlamaI
 
 This document combines documentation from the entire project, including setup guides, architecture details, and usage references.
 
-## 📋 Table of Contents
+## Table of Contents
 - [Features](#features)
 - [Project Structure](#project-structure)
 - [Installation & Setup](#installation--setup)
@@ -20,7 +20,7 @@ This document combines documentation from the entire project, including setup gu
 
 ## Features
 
-✨ **Key Capabilities:**
+**Key Capabilities:**
 - **Citation-based fact-checking** - Track sources and evidence for claims
 - **Groq API Integration** - Ultra-fast inference with multiple model options (Version 2.0)
 - **Multilingual Support** - English and Vietnamese fact-checking
@@ -36,20 +36,16 @@ This document combines documentation from the entire project, including setup gu
 
 ```
 fact_checking/
-├── fact_checker.py              ⭐ Main system (core)
-├── cli.py                       ⭐ Command-line interface
+├── fact_checker.py              Main system (core)
+├── cli.py                       Command-line interface
 ├── config.py                    Configuration management
 ├── utils.py                     Export & analysis tools
-├── examples.py                  Code examples
 ├── verify_setup.py              Diagnostic tool
 ├── requirements.txt             Dependencies
 ├── .env.example                 Config template
 ├── .gitignore                   Git configuration
 │
-├── sample_knowledge_base.txt    Example documents
-├── sample_claims.txt            Example claims
-│
-├── README.md                    📖 Full documentation
+├── README.md                    Full documentation
 └── ...
 ```
 
@@ -304,10 +300,10 @@ fact_checker = NewsFactChecker(collection_name="other_collection")
 ```python
 # More deterministic responses
 from llama_index.llms.xai import Grok
-llm = Grok(api_key=key, temperature=0.1)
+llm = Groq(api_key=key, temperature=0.1)
 
 # More creative responses
-llm = Grok(api_key=key, temperature=0.7)
+llm = Groq(api_key=key, temperature=0.7)
 ```
 
 ### Embedding Caching
@@ -348,7 +344,7 @@ for claim in tqdm(claims):
 
 ## API Costs
 
-- **Grok API**: Pay-per-token pricing (see [Grok pricing](https://api.grok.ai/pricing))
+- **Grog API**: free 
 - **BAAI/bge-m3**: Open-source, free (runs locally)
 - **Chroma**: Open-source, free
 
@@ -368,7 +364,7 @@ MIT License - See LICENSE file
 
 - [LlamaIndex Documentation](https://docs.llamaindex.ai/)
 - [Chroma Documentation](https://docs.trychroma.com/)
-- [Grok API Documentation](https://docs.grok.ai/)
+- [Groq API Documentation](https://console.groq.com/)
 - [BAAI/bge-m3 Model Card](https://huggingface.co/BAAI/bge-m3)
 
 ## Support
@@ -383,5 +379,6 @@ For issues or questions:
 
 **Last Updated:** February 2024
 **Version:** 1.0.0
-#   f a c t _ c h e c k i n g  
+#   f a c t _ c h e c k i n g 
+ 
  
