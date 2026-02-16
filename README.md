@@ -374,11 +374,3 @@ For issues or questions:
 2. Review example files
 3. Check dependencies are installed
 4. Verify API keys are correct
-
----
-
-**Last Updated:** February 2024
-**Version:** 1.0.0
-#   f a c t _ c h e c k i n g 
- 
- 
