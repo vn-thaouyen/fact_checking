@@ -8,6 +8,7 @@ import json
 from typing import Any, List, Optional, Union
 from dataclasses import dataclass
 from dotenv import load_dotenv
+from src.prompt_template import CITATION_QA_TEMPLATE, CITATION_REFINE_TEMPLATE
 
 from llama_index.core import VectorStoreIndex, Document, Settings
 from llama_index.core.node_parser import SimpleNodeParser
@@ -159,7 +160,9 @@ class NewsFactChecker:
             self.index,
             llm=self.llm,
             similarity_top_k=top_k,
-            citation_chunk_size=512
+            citation_chunk_size=512,
+            citation_qa_template=CITATION_QA_TEMPLATE,
+            citation_refine_template=CITATION_REFINE_TEMPLATE
         )
         
         # Prepare the fact-checking prompt (with language support)
