@@ -55,7 +55,7 @@ def test_configuration():
             print(f"  - Embedding Model: {config.embedding_model}")
             print(f"  - LLM Model: {config.llm_model}")
             print(f"  - Temperature: {config.llm_temperature}")
-            print(f"  - Groq API Key: {'***' + config.groq_api_key[-4:] if config.groq_api_key else 'NOT SET'}")
+            print(f"  - HF_TOKEN: {'***' + config.hf_token[-4:] if config.hf_token else 'NOT SET'}")
             return True
         except ValueError as e:
             print(f"✗ Configuration Error: {e}")
@@ -132,38 +132,38 @@ def test_vector_store():
 
 
 def test_llm_connection():
-    """Test Grok LLM connection"""
+    """Test llm connection"""
     print("\n" + "="*70)
-    print("TESTING GROK LLM CONNECTION")
+    print("TESTING LLM CONNECTION")
     print("="*70)
     
     try:
         from config import get_config
-        from llama_index.llms.groq import Groq
+        from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
         
         config = get_config()
         
-        print("Initializing Groq LLM...")
-        llm = Groq(
-            api_key=config.groq_api_key,
-            model="grok-3",
-            temperature=0.3,
-            max_tokens=100
+        print("Initializing LLM...")
+        llm = HuggingFaceInferenceAPI(
+            api_key=config.hf_token,
+            model="Qwen/Qwen2.5-32B-Instruct",
+            temperature=0.2,
+            max_tokens=2048
         )
         
-        print("Testing Groq API connection...")
-        print("(Sending test message to Groq API)")
+        print("Testing HuggingFace API connection...")
+        print("(Sending test message to HuggingFace API)")
         
-        response = llm.complete("Say 'Groq API is working' in exactly 5 words")
+        response = llm.complete("Say 'HuggingFace API is working' in exactly 5 words")
         
-        print("✓ Groq LLM connection successful")
-        print(f"  - Model: grok-3")
+        print("HuggingFace API connection successful")
+        print(f"  - Model: Qwen/Qwen2.5-3LLM connection successful")
         print(f"  - Response: {response.text[:100]}...")
         return True
     
     except Exception as e:
-        print(f"✗ Error testing Groq connection: {e}")
-        print("  - Check your GROQ_API_KEY")
+        print(f"Error testing Groq connection: {e}")
+        print("  - Check your HF_TOKEN")
         print("  - Check internet connection")
         return False
 
@@ -181,7 +181,7 @@ def test_fact_checker():
         config = get_config()
         
         print("Initializing NewsFactChecker...")
-        fact_checker = NewsFactChecker(groq_api_key=config.groq_api_key)
+        fact_checker = NewsFactChecker(hf_token=config.hf_token)
         
         print("✓ Fact checker initialized successfully")
         print("  - LLM: Groq")
@@ -221,7 +221,7 @@ def test_sample_claim():
         config = get_config()
         
         print("Initializing system for sample fact-check...")
-        fact_checker = NewsFactChecker(groq_api_key=config.groq_api_key)
+        fact_checker = NewsFactChecker(hf_token=config.hf_token)
         
         # Add knowledge base
         test_docs = [

@@ -14,12 +14,13 @@ from llama_index.core import VectorStoreIndex, Document, Settings
 from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 from llama_index.llms.groq import Groq
 from llama_index.core.query_engine import CitationQueryEngine
 import chromadb
 
 # Load environment variables
-load_dotenv()
+HF_TOKEN = load_dotenv()
 
 @dataclass
 class FactCheckResult:
@@ -39,7 +40,7 @@ class NewsFactChecker:
     
     def __init__(
         self,
-        groq_api_key: Optional[str] = None,
+        hf_token: Optional[str] = None,
         collection_name: str = "news_facts",
         persist_dir: str = "./chroma_data",
         language: str = "vi"
@@ -53,9 +54,9 @@ class NewsFactChecker:
             persist_dir: Directory for persisting Chroma database
             language: Language code ('vi' for Vietnamese, 'en' for English)
         """
-        self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
-        if not self.groq_api_key:
-            raise ValueError("GROQ_API_KEY not provided and not found in environment")
+        self.hf_token = hf_token or os.getenv("HF_TOKEN")
+        if not self.hf_token:
+            raise ValueError("HF_TOKEN not provided and not found in environment")
         self.language = language
         
         self.persist_dir = persist_dir
@@ -69,12 +70,19 @@ class NewsFactChecker:
     
     def _setup_llm(self):
         """Configure Groq LLM"""
-        self.llm = Groq(
-            api_key=self.groq_api_key,
-            # model="mixtral-8x7b-32768",
-            model="Llama-3.3-70B-Versatile",
-            temperature=0.3,  # Lower temperature for factual consistency
-            max_tokens=2048
+        # self.llm = Groq(
+        #     api_key=self.groq_api_key,
+        #     # model="mixtral-8x7b-32768",
+        #     model="Llama-3.3-70B-Versatile",
+        #     temperature=0.3,  # Lower temperature for factual consistency
+        #     max_tokens=2048
+        # )
+
+        self.llm = HuggingFaceInferenceAPI(
+            model_name="Qwen/Qwen2.5-32B-Instruct",
+            token=HF_TOKEN,
+            max_new_tokens=2048,
+            temperature=0.2,
         )
         
         # Set as default LLM in Settings
@@ -124,7 +132,7 @@ class NewsFactChecker:
         
         # check if input is list of strings or list of Document objects
         if documents and isinstance(documents[0], str):
-            # handle old logic: if input is list of strings, convert to Document objects with optional metadata
+            # if input is list of strings, convert to Document objects with optional metadata
             for i, doc_text in enumerate(documents):
                 meta = metadata[i] if metadata else {}
                 if "source" not in meta:
@@ -133,7 +141,7 @@ class NewsFactChecker:
                     Document(text=doc_text, metadata=meta)
                 )
         else:
-            # new logic: if input is already a list of Document objects, use them directly (metadata should be included in Document.metadata)
+            # if input is already a list of Document objects, use them directly (metadata should be included in Document.metadata)
             doc_objects = documents
         
         # Convert documents to nodes and add to index

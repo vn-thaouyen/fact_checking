@@ -14,13 +14,13 @@ class FactCheckConfig:
     """Configuration settings for fact-checking system"""
     
     # API Configuration
-    groq_api_key: str
+    hf_token: str
     
     # Model Configuration
     embedding_model: str = "BAAI/bge-m3"
-    llm_model: str = "llama-3.3-70b-versatile"
+    llm_model: str = "Qwen/Qwen2.5-32B-Instruct"
     language: str = "vi"  # Vietnamese support
-    llm_temperature: float = 0.3
+    llm_temperature: float = 0.2
     llm_max_tokens: int = 2048
     
     # Vector Store Configuration
@@ -50,23 +50,23 @@ class FactCheckConfig:
             FactCheckConfig instance
         
         Raises:
-            ValueError: If GROK_API_KEY is not set
+            ValueError: If HF_TOKEN is not set
         """
         # Load environment variables from .env file
         load_dotenv(env_file)
         
-        groq_api_key = os.getenv("GROQ_API_KEY")
-        if not groq_api_key:
+        hf_token = os.getenv("HF_TOKEN")
+        if not hf_token:
             raise ValueError(
-                "GROQ_API_KEY not found in environment. "
+                "HF_TOKEN is not found in environment. "
                 "Please set it in .env file or as environment variable."
             )
         
         return cls(
-            groq_api_key=groq_api_key,
+            hf_token=hf_token,
             embedding_model=os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3"),
-            llm_model=os.getenv("LLM_MODEL", "llama-3.3-70b-versatile"),
-            llm_temperature=float(os.getenv("LLM_TEMPERATURE", "0.3")),
+            llm_model=os.getenv("LLM_MODEL", "Qwen/Qwen2.5-32B-Instruct"),
+            llm_temperature=float(os.getenv("LLM_TEMPERATURE", "0.2")),
             llm_max_tokens=int(os.getenv("LLM_MAX_TOKENS", "2048")),
             language=os.getenv("LANGUAGE", "vi"),
             chroma_persist_dir=os.getenv("CHROMA_PERSIST_DIR", "./chroma_data"),
@@ -88,8 +88,8 @@ class FactCheckConfig:
         Raises:
             ValueError: If any setting is invalid
         """
-        if not self.groq_api_key:
-            raise ValueError("groq_api_key is required")
+        if not self.hf_token:
+            raise ValueError("HF_TOKEN is required")
         
         if not self.embedding_model:
             raise ValueError("embedding_model is required")
@@ -117,7 +117,7 @@ class FactCheckConfig:
     def to_dict(self) -> dict:
         """Convert configuration to dictionary"""
         return {
-            "groq_api_key": "***" if self.groq_api_key else None,  # Hide API key
+            "hf_token": "***" if self.hf_token else None,  # Hide API key
             "embedding_model": self.embedding_model,
             "language": self.language,
             "llm_model": self.llm_model,

@@ -14,6 +14,13 @@ from src.fact_checker import NewsFactChecker
 from config import get_config
 from src.utils import ResultExporter, StatisticsAnalyzer, ClaimValidator
 
+import re
+
+def extract_date_from_id(doc_id: str) -> str:
+    match = re.search(r'(\d{2}-\d{2}-\d{4})', str(doc_id))
+    if match:
+        return match.group(1)
+    return "Không xác định"
 
 def load_claims_from_file(filepath: str) -> List[str]:
     """Load claims from a text file (one claim per line)"""
@@ -51,8 +58,20 @@ def load_knowledge_base(filepath: str) -> Tuple[Union[List[str], List[Document]]
                     continue
                 
                 # get source name and title
+                doc_id = entry.get("id", "")
                 source_name = entry.get("name", entry.get("source", "")).strip()
                 title = entry.get("title", "").strip()
+                description = entry.get("description", "").strip()
+
+                date_str = extract_date_from_id(doc_id)
+                
+                enriched_text = (
+                    f"Ngày phát hành: {date_str}\n"
+                    f"Tiêu đề: {title}\n"
+                    f"Nguồn: {source_name}\n"
+                    f"Mô tả: {description}\n"
+                    f"Nội dung chi tiết: {text}"
+                )
                 
                 # Creare a full source string combining name and title for better metadata (instead of just name)
                 # Ex: "Báo Dân Trí: Bão tuyết đốt chục tỷ USD..."
@@ -61,17 +80,19 @@ def load_knowledge_base(filepath: str) -> Tuple[Union[List[str], List[Document]]
                 else:
                     full_source = source_name or title or "Unknown Source"
 
-                # Tạo metadata
+                # metadata
                 metadata = {
                     "id": entry.get("id", ""),
                     "title": title,
-                    "source": full_source, 
+                    "date": date_str,
+                    "source": full_source,
+                    "description": description,
                     "category": entry.get("category", ""),
                     "images": json.dumps(entry.get("images", []))
                 }
                 
                 # Create Documeent object with text and metadata
-                doc = Document(text=text, metadata=metadata)
+                doc = Document(text=enriched_text, metadata=metadata)
                 documents.append(doc)
             
             # Retuen list of Document objects and empty metadata (since metadata is embedded in Document)
@@ -127,8 +148,8 @@ def print_result(result):
             
             print(f"\nSource {idx}:")
             print(f"Origin: {source_name}")
-            #print(f"Content: \"{content[:300]}...\"") # In 300 ký tự đầu cho gọn
-            print(f"Content: {content}") # In 300 ký tự đầu cho gọn
+            #print(f"Content: \"{content[:300]}...\"") 
+            print(f"Content: {content}")
             
             # 3. Get images from metadata if available (handle both JSON string and list)
             if 'images' in meta:
@@ -227,7 +248,7 @@ def main():
         
         try:
             fact_checker = NewsFactChecker(
-                groq_api_key=config.groq_api_key,
+                hf_token=config.hf_token,
                 collection_name=config.chroma_collection_name,
                 persist_dir=config.chroma_persist_dir,
                 language="vi" # Changed default to 'vi' based on context
@@ -260,7 +281,7 @@ def main():
             print(f"{len(claims)} valid claims to check\n")
             
             fact_checker = NewsFactChecker(
-                groq_api_key=config.groq_api_key,
+                hf_token=config.hf_token,
                 collection_name=config.chroma_collection_name,
                 persist_dir=config.chroma_persist_dir,
                 language="vi"
@@ -301,7 +322,7 @@ def main():
         
         try:
             fact_checker = NewsFactChecker(
-                groq_api_key=config.groq_api_key,
+                hf_token=config.hf_token,
                 collection_name=config.chroma_collection_name,
                 persist_dir=config.chroma_persist_dir,
                 language="vi"
@@ -325,7 +346,7 @@ def main():
                 try:
                     print("\nAnalyzing claim...")
                     result = fact_checker.check_claim(claim)
-                    print_result(result) # Sử dụng hàm print_result chung
+                    print_result(result) 
                 
                 except Exception as e:
                     print(f"Error analyzing claim: {e}\n")
