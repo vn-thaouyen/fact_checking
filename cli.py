@@ -6,15 +6,12 @@ import sys
 import argparse
 import json
 import os
-from pathlib import Path
+import re
 from typing import List, Tuple, Union
-
 from llama_index.core import Document
 from src.fact_checker import NewsFactChecker
 from config import get_config
 from src.utils import ResultExporter, StatisticsAnalyzer, ClaimValidator
-
-import re
 
 def extract_date_from_id(doc_id: str) -> str:
     match = re.search(r'(\d{2}-\d{2}-\d{4})', str(doc_id))

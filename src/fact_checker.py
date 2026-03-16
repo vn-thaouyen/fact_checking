@@ -1,10 +1,11 @@
 """
 News Fact-Checking System using LlamaIndex Citation Query Engine
-Uses Groq API for inference and BAAI/bge-m3 for embeddings with Chroma vector store
+
 """
 
 import os
-import json
+import re
+import warnings
 from typing import Any, List, Optional, Union
 from dataclasses import dataclass
 from dotenv import load_dotenv
@@ -36,7 +37,7 @@ class FactCheckResult:
 
 
 class NewsFactChecker:
-    """Fact-checking system for Vietnamese news claims using LlamaIndex and Groq API"""
+    """Fact-checking system for Vietnamese news claims using LlamaIndex and HuggingFace Inference API"""
     
     def __init__(
         self,
@@ -49,7 +50,7 @@ class NewsFactChecker:
         Initialize the fact-checking system
         
         Args:
-            groq_api_key: Groq API key (defaults to GROQ_API_KEY env var)
+            hf_token: hf token key (defaults to HF_TOKEN env var)
             collection_name: Name of the Chroma collection
             persist_dir: Directory for persisting Chroma database
             language: Language code ('vi' for Vietnamese, 'en' for English)
@@ -90,7 +91,6 @@ class NewsFactChecker:
     
     def _setup_embeddings(self):
         """Configure BAAI/bge-m3 embeddings"""
-        import warnings
         # Suppress huggingface_hub warnings about symlinks
         warnings.filterwarnings('ignore', message='.*huggingface_hub.*cache-system.*')
         
@@ -225,7 +225,6 @@ EXPLANATION: [Your explanation]
     def _parse_response(self, claim: str, response) -> FactCheckResult:
         """Parse LLM response into FactCheckResult (supports Vietnamese and English)"""
         response_text = str(response)
-        import re
         
         # Extract verdict (support both English and Vietnamese)
         verdict = "not_enough_information"
