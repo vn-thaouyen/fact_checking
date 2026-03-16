@@ -1,64 +1,63 @@
 # News Fact-Checking System
 
-A comprehensive fact-checking system for multilingual news claims using **LlamaIndex Citation Query Engine**, **Groq API** for fast inference, **BAAI/bge-m3** embeddings, and **Chroma** vector storage. Supports **English** and **Vietnamese** news fact-checking.
+A fact-checking system for news claims using LlamaIndex, HuggingFace Inference API, and Chroma vector storage. Supports Vietnames and English
 
-This document combines documentation from the entire project, including setup guides, architecture details, and usage references.
+## Setup
 
-## Table of Contents
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [Quick Start](#quick-start)
-- [Usage Guide](#usage-guide)
-  - [Command Line Interface](#command-line-interface)
-  - [Python API](#python-api)
-  - [Interactive Mode](#interactive-mode)
-- [Configuration](#configuration)
-- [Technical Architecture](#technical-architecture)
-- [Troubleshooting & FAQ](#troubleshooting--faq)
-- [Reference](#reference)
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Features
+2. **Configure environment** (create `.env` file):
+   ```
+   HF_TOKEN=your_hugging_face_token
+   ```
 
-**Key Capabilities:**
-- **Citation-based fact-checking** - Track sources and evidence for claims
-- **Groq API Integration** - Ultra-fast inference with multiple model options (Version 2.0)
-- **Multilingual Support** - English and Vietnamese fact-checking
-- **Vietnamese News** - Native support for Vietnamese language claims
-- **Multi-model Embeddings** - BAAI/bge-m3 for semantic understanding
-- **Vector Storage** - Persistent Chroma database for scalable fact bases
-- **Three-level Verdicts** - True, False, or Not Enough Information
-- **Confidence Scoring** - Numerical confidence for each verdict
-- **Batch Processing** - Check multiple claims efficiently
-- **Source Tracking** - Maintain citations and evidence trails
+3. **Verify setup:**
+   ```bash
+   python verify_setup.py
+   ```
 
-## Project Structure
+## CLI Usage
 
+**Check a single claim:**
+```bash
+python cli.py check "Your claim here" --kb sample.json
 ```
-fact_checking/
-├── fact_checker.py              Main system (core)
-├── cli.py                       Command-line interface
-├── config.py                    Configuration management
-├── utils.py                     Export & analysis tools
-├── verify_setup.py              Diagnostic tool
-├── requirements.txt             Dependencies
-├── .env.example                 Config template
-├── .gitignore                   Git configuration
-│
-├── README.md                    Full documentation
-└── ...
+
+**Check multiple claims from a file:**
+```bash
+python cli.py batch claims.txt --kb knowledge_base.json --output results.json --format json
 ```
+
+**Interactive mode:**
+```bash
+python cli.py interactive --kb knowledge_base.json
+```
+
+**View configuration:**
+```bash
+python cli.py config
+```
+
+## Options
+
+- `--kb` - Path to knowledge base file (JSON or TXT)
+- `--top-k` - Number of sources to retrieve (default: 5)
+- `--output` - Output file for batch results
+- `--format` - Output format: json, csv, markdown, or html
 
 2. **Create environment file:**
 ```bash
 copy .env.example .env
 ```
 
-3. **Add your Groq API key:**
+3. **Add your HuggingFace API key:**
 Open `.env` and update:
 ```
-GROQ_API_KEY=your_actual_groq_api_key_here
-LANGUAGE=vi  # For Vietnamese, or 'en' for English
+HF_TOKEN=your_hugging_face_token
+
 ```
 
 4. **Install dependencies:**
@@ -158,7 +157,7 @@ fact_checker.add_knowledge_base(documents_vi, metadata)
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **LLM** | Groq API (mixtral-8x7b-32768) | Ultra-fast inference for claims |
+| **LLM** | HuggingFace Inference API | Inference for claims |
 | **Embedding Model** | BAAI/bge-m3 | Semantic vector representations (multilingual) |
 | **Vector Store** | Chroma DB | Persistent knowledge base storage |
 | **Query Engine** | LlamaIndex Citation QE | Source-aware retrieval and ranking |
@@ -183,11 +182,11 @@ FactCheckResult (verdict + confidence + citations)
 
 ```env
 # API Keys
-GROK_API_KEY=your_key_here
+HF_TOKEN=your hf token
 
 # Model Settings
 EMBEDDING_MODEL=BAAI/bge-m3
-LLM_TEMPERATURE=0.3
+LLM_TEMPERATURE=0.2
 LLM_MAX_TOKENS=2048
 
 # Vector Store
@@ -204,7 +203,7 @@ CITATION_CHUNK_SIZE=512
 ```python
 # Custom initialization
 fact_checker = NewsFactChecker(
-    grok_api_key="your_key",
+    hf_token="your_key",
     collection_name="custom_collection",
     persist_dir="./custom_data"
 )
@@ -216,9 +215,9 @@ fact_checker = NewsFactChecker(
 
 #### Methods
 
-**`__init__(grok_api_key, collection_name, persist_dir)`**
+**`__init__(hf_token, collection_name, persist_dir)`**
 - Initialize fact-checking system
-- `grok_api_key`: Grok API key (defaults to env var)
+- `hf_token`: HuggingFace Inference API key (defaults to env var)
 - `collection_name`: Chroma collection name
 - `persist_dir`: Vector store persistence directory
 
@@ -252,22 +251,6 @@ Data class containing:
 - `explanation`: Explanation of verdict
 - `citations`: List of source citations
 
-## Examples
-
-### Example 1: Basic Fact-Checking
-See `examples.py` - `example_basic_fact_checking()`
-
-### Example 2: Batch Processing
-See `examples.py` - `example_batch_processing()`
-
-### Example 3: Confidence Analysis
-See `examples.py` - `example_confidence_analysis()`
-
-Run all examples:
-```bash
-python examples.py
-```
-
 ## Vector Store Management
 
 ### Persistent Storage
@@ -292,85 +275,3 @@ shutil.rmtree("./chroma_data")
 ```python
 fact_checker = NewsFactChecker(collection_name="other_collection")
 ```
-
-## Advanced Usage
-
-### Custom Temperature Settings
-
-```python
-# More deterministic responses
-from llama_index.llms.xai import Grok
-llm = Groq(api_key=key, temperature=0.1)
-
-# More creative responses
-llm = Groq(api_key=key, temperature=0.7)
-```
-
-### Embedding Caching
-
-Embeddings are cached by default in `./embeddings_cache/` to improve performance on repeated documents.
-
-### Batch with Progress
-
-```python
-from tqdm import tqdm
-
-results = []
-for claim in tqdm(claims):
-    result = fact_checker.check_claim(claim)
-    results.append(result)
-```
-
-## Troubleshooting
-
-### Issue: "GROK_API_KEY not found"
-**Solution:** Set GROK_API_KEY in `.env` file or pass to `NewsFactChecker()`
-
-### Issue: "Failed to import llama_index"
-**Solution:** Ensure dependencies installed: `pip install -r requirements.txt`
-
-### Issue: Slow embedding generation
-**Solution:** First run downloads the BAAI/bge-m3 model. Subsequent runs use cache.
-
-### Issue: Chroma database locked
-**Solution:** Ensure only one process accesses the vector store. Restart Python if needed.
-
-## Performance Tips
-
-1. **Batch Processing**: Check multiple claims at once
-2. **Lower top_k**: Fewer sources = faster retrieval (trade-off with accuracy)
-3. **Embedding Cache**: Reuse embeddings for known documents
-4. **Collection Indexing**: Chroma creates indexes for faster searches
-
-## API Costs
-
-- **Grog API**: free 
-- **BAAI/bge-m3**: Open-source, free (runs locally)
-- **Chroma**: Open-source, free
-
-## Contributing
-
-Contributions welcome! Areas for improvement:
-- Add more embedding models
-- Implement web scraping for knowledge base
-- Add real-time fact database integration
-- Improve verdict explanation quality
-
-## License
-
-MIT License - See LICENSE file
-
-## Resources
-
-- [LlamaIndex Documentation](https://docs.llamaindex.ai/)
-- [Chroma Documentation](https://docs.trychroma.com/)
-- [Groq API Documentation](https://console.groq.com/)
-- [BAAI/bge-m3 Model Card](https://huggingface.co/BAAI/bge-m3)
-
-## Support
-
-For issues or questions:
-1. Check troubleshooting section
-2. Review example files
-3. Check dependencies are installed
-4. Verify API keys are correct
